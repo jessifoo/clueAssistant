@@ -4,33 +4,12 @@ Dynamic predicates to represent suspected weapons, persons, and rooms
 
 % Current Suspects
 :- dynamic suspect/2.
-suspect(profplum,0).
-suspect(msscarlet,0).
-suspect(mrspeacock,0).
-suspect(revgreen,0).
-suspect(mrswhite,0).
-suspect(colmustard,0).
 
 % Current Possible Weapons
 :- dynamic mweapon/2.
-mweapon(knife,0).
-mweapon(candlestick,0).
-mweapon(revolver,0).
-mweapon(rope,0).
-mweapon(leadpipe,0).
-mweapon(wrench,0).
 
 % Current Possible Rooms
 :- dynamic mroom/2.
-mroom(kitchen,0).
-mroom(ballroom,0).
-mroom(conservatory,0).
-mroom(billiardroom,0).
-mroom(library,0).
-mroom(study,0).
-mroom(hall,0).
-mroom(lounge,0).
-mroom(diningroom,0).
 
 % Current player room
 :- dynamic playerRoom/1.
@@ -83,14 +62,23 @@ isPerson(revgreen).
 isPerson(mrswhite).
 isPerson(colmustard).
 
-
-
 % Valid card check
 isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
+
+% builddynamics takes all possible items and creates a dynamic game w/ eval arrity
+builddynamics :- buildSuspects.
+builddynamics :- buildWeapons.
+builddynamics :- buildRooms.
+builddynamics.
+
+buildSuspects :- isPerson(X),assert(suspect(X,0)),fail.
+buildWeapons :- isWeapon(Y),assert(mweapon(Y,0)),fail.
+buildRooms :- isRoom(Z),assert(mroom(Z,0)),fail.
 
 % BEGIN GAMEPLAY PREDICATES ---------------------
 
 start :-
+builddynamics,
 write('Welcome to the Clue Assistant program. ========='),nl,nl,
 write('Enter the number of players: '),
 read(Players),
@@ -144,9 +132,9 @@ min(X) :- mroom(X,Z),not((mroom(X,Other),Other<Z)),!.
 executeOption(1) :-
 nl,
 write('A good guess is: '),
-suspect(X,_),min(X),
-mweapon(Y,_),min(Y),
-mroom(Z,_),min(Z),
+suspect(X,_),min(X),not(shownCard(_,X)),
+mweapon(Y,_),min(Y),not(shownCard(_,Y)),
+mroom(Z,_),min(Z),not(shownCard(_,Z)),
 write(X),
 write(' with the '),
 write(Y),
@@ -187,7 +175,9 @@ showOptions.
 % show remaining cards again
 executeOption(5) :- printAvailCards.
 
-executeOption(6) :- retractall(shownCard(_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)), false.
+executeOption(6) :- retractall(shownCard(_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),
+    retractall(suspect(_,_)), retractall(mweapon(_,_)),
+    retractall(mroom(_,_)), false.
 
 % HELPER for executeOption(4) to process an opponents guess
 % modify suspect entry
