@@ -96,6 +96,9 @@ write('Enter the number of cards you recieved: '),
 read(Numcards),
 assert(numPlayerCards(Numcards)),
 entercards(Numcards),
+write('Which room are you starting in? '),
+read(Room),
+assert(playerRoom(Room)),
 playLoop.
 
 % procedure to enter cards into play
@@ -124,9 +127,10 @@ nl,
 write('MENU ------------------------------'),nl,
 write('[1] for the current recommended move (guess)'),nl,
 write('[2] to enter card discovered from your turn'),nl,
-write('[3] to enter an opponents failed guess'),nl,
-write('[4] to show remaining possible cards'),nl,
-write('[5] quit program'),nl,
+write('[3] to change the room you are currently in'),nl,
+write('[4] to enter an opponents failed guess'),nl,
+write('[5] to show remaining possible cards'),nl,
+write('[6] quit program'),nl,
 write(':'),
 read(Option),
 executeOption(Option).
@@ -153,13 +157,24 @@ entercards(1),
 nl,
 showOptions.
 
+executeOption(3) :-
+nl,
+write('You are currently in the '),
+playerRoom(X),
+write(X),
+write('. What room would you like to move to? '),
+read(Room),
+retract(playerRoom(_)),!,
+assert(playerRoom(Room)),
+showOptions.
+
 % PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
-executeOption(3).
+executeOption(4).
 
 % show remaining cards again
-executeOption(4) :- printAvailCards.
+executeOption(5) :- printAvailCards.
 
-executeOption(5) :- false.
+executeOption(6) :- false.
 
 % Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
