@@ -38,6 +38,9 @@ mroom(diningroom).
 % Number of cards each player has.
 :- dynamic numPlayerCards/1.
 
+% Number of players in the game
+:- dynamic numPlayers/1.
+
 % SOLUTION predicate
 %murderer(X) :- suspect(),weapon(),room()
 
@@ -82,13 +85,17 @@ isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
 % BEGIN GAMEPLAY PREDICATES ---------------------
 
 start :-
+write('Welcome to the Clue Assistant program. ========='),nl,nl,
 write('Enter the number of players: '),
-read(Numplayers),
+read(Players),
+assert(numPlayers(Players)),
 write('Enter the number of cards you recieved: '),
 read(Numcards),
 assert(numPlayerCards(Numcards)),
-entercards(Numcards).
+entercards(Numcards),
+playLoop.
 
+% procedure to enter cards into play
 entercards(0).
 entercards(N) :-
 N>0, % make sure positive number
@@ -96,9 +103,92 @@ write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
 assert(shownCard(1,Card)),
+removeFromPlay(Card),
 M is N-1,
 entercards(M).
 
+% removes a card that has been entered from possible solutions.
+removeFromPlay(X) :- isWeapon(X), retract(mweapon(X)).
+removeFromPlay(X) :- isPerson(X), retract(suspect(X)).
+removeFromPlay(X) :- isRoom(X), retract(mroom(X)).
+
+% loop for gameplay
+playLoop :- showOptions.
+
+% menu for asking for recommended move or enter more cards into play
+showOptions :-
+nl,
+write('MENU ------------------------------'),nl,
+write('[1] for a recommended move (guess)'),nl,
+write('[2] for a card entry'),nl,
+write('[3] to show remaining cards'),nl,
+write('[4] quit program'),nl,
+write(':'),
+read(Option),
+executeOption(Option).
+
+% helper for showOptions executes the selected option.
+executeOption(1) :-
+nl,
+write('A good guess is: '),
+suspect(X),
+mweapon(Y),
+mroom(Z),
+write(X),
+write(' with the '),
+write(Y),
+write(' in the '),
+write(Z),
+!, % cut so that it only gives one possible guess per execution.
+nl,
+showOptions.
+
+executeOption(2) :-
+nl,
+entercards(1),
+nl,
+write('Would you like to enter a another card [Y/N]? : '),
+read(Ans),
+enterAnotherCard(Ans).
+
+% show remaining cards again
+executeOption(3) :- printAvailCards.
+
+executeOption(4) :- false.
+
+% HELPER for executeOption(2) whether to enter another card or go back to showOptions
+enterAnotherCard(X) :- X = 'Y' ; X = 'y',
+executeOption(2).
+enterAnotherCard(X) :- X = 'N' ; X = 'n',
+showOptions.
+
+% Lists all the cards that have not been shown yet
+printAvailCards :- printSuspects ; printRooms ; printWeapons.
+printAvailCards :- showOptions.
+
+printSuspects :-
+nl,
+write('Current Suspects: '),nl,nl,
+suspect(X),
+write(X),
+nl,
+fail.
+
+printWeapons :-
+nl,
+write('Possible Weapons: '),nl,nl,
+mweapon(X),
+write(X),
+nl,
+fail.
+
+printRooms :-
+nl,
+write('Possible Rooms: '),nl,nl,
+mroom(X),
+write(X),
+nl,
+fail.
 
 % clean database of cards
 clean :- abolish(shownCard/2).
