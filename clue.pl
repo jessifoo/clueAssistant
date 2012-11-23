@@ -2,6 +2,7 @@
 Dynamic predicates to represent suspected weapons, persons, and rooms
 */
 
+% Current Suspects
 :- dynamic suspect/1.
 suspect(profplum).
 suspect(msscarlet).
@@ -10,6 +11,7 @@ suspect(revgreen).
 suspect(mrswhite).
 suspect(colmustard).
 
+% Current Possible Weapons
 :- dynamic mweapon/1.
 mweapon(knife).
 mweapon(candlestick).
@@ -18,6 +20,7 @@ mweapon(rope).
 mweapon(leadpipe).
 mweapon(wrench).
 
+% Current Possible Rooms
 :- dynamic mroom/1.
 mroom(kitchen).
 mroom(ballroom).
@@ -30,7 +33,7 @@ mroom(lounge).
 mroom(diningroom).
 
 % List of all cards which have been shown, shown cards are eliminated from solution.
-:- dynamic shownCard/1.
+:- dynamic shownCard/2.
 
 % Number of cards each player has.
 :- dynamic numPlayerCards/1.
@@ -46,6 +49,7 @@ notWeapon(X) :- not(isWeapon(X)).
 notRoom(X) :- not(isRoom(X)).
 notValidPerson(X) :- not(isPerson(X)).
 
+% Valid weapon check
 isWeapon(knife).
 isWeapon(candlestick).
 isWeapon(revolver).
@@ -53,6 +57,7 @@ isWeapon(rope).
 isWeapon(leadpipe).
 isWeapon(wrench).
 
+% Valid room check
 isRoom(kitchen).
 isRoom(ballroom).
 isRoom(conservatory).
@@ -63,6 +68,7 @@ isRoom(hall).
 isRoom(lounge).
 isRoom(diningroom).
 
+% Valid person check
 isPerson(profplum).
 isPerson(msscarlet).
 isPerson(mrspeacock).
@@ -70,7 +76,10 @@ isPerson(revgreen).
 isPerson(mrswhite).
 isPerson(colmustard).
 
-cardShown(Player,Card).
+% Valid card check
+isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
+
+% BEGIN GAMEPLAY PREDICATES ---------------------
 
 start :-
 write('Enter the number of players: '),
@@ -80,20 +89,17 @@ read(Numcards),
 assert(numPlayerCards(Numcards)),
 entercards(Numcards).
 
-isValidCard(Card) :- isWeapon(Card) ; isRoom(Card).
-
 entercards(0).
 entercards(N) :-
 N>0, % make sure positive number
 write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
-assert(shownCard(Card)),
+assert(shownCard(1,Card)),
 M is N-1,
 entercards(M).
 
-/* EXAMPLE OF HOW TO LOOP IN PROLOG.
-testloop(0).
-testloop(N) :- N>0, write(‘Number : ‘), write(N), nl, M is N-1, testloop(M).
-*/
+
+% clean database of cards
+clean :- abolish(shownCard/2).
 
