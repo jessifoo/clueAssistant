@@ -210,7 +210,7 @@ printAvailCards :- showOptions.
 printSuspects :-
 nl,
 write('Current Suspects: '),nl,nl,
-suspect(X),
+suspect(X,_),
 not(shownCard(1,X)),
 write(X),
 nl,
@@ -219,7 +219,7 @@ fail.
 printWeapons :-
 nl,
 write('Possible Weapons: '),nl,nl,
-mweapon(X),
+mweapon(X,_),
 not(shownCard(1,X)),
 write(X),
 nl,
@@ -228,7 +228,7 @@ fail.
 printRooms :-
 nl,
 write('Possible Rooms: '),nl,nl,
-mroom(X),
+mroom(X,_),
 not(shownCard(1,X)),
 write(X),
 nl,
