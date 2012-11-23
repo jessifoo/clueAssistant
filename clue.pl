@@ -134,13 +134,19 @@ write(':'),
 read(Option),
 executeOption(Option).
 
+% MIN Value Finder
+min(X) :- suspect(X,Z),not((suspect(X,Other),Other<Z)),!.
+min(X) :- mweapon(X,Z),not((mweapon(X,Other),Other<Z)),!.
+min(X) :- mroom(X,Z),not((mroom(X,Other),Other<Z)),!.
+
 % helper for showOptions executes the selected option.
+% Gives the best guess based on the evaluator functions of the items in database
 executeOption(1) :-
 nl,
 write('A good guess is: '),
-suspect(X),
-mweapon(Y),
-mroom(Z),
+suspect(X,_),min(X),
+mweapon(Y,_),min(Y),
+mroom(Z,_),min(Z),
 write(X),
 write(' with the '),
 write(Y),
