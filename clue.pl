@@ -98,9 +98,6 @@ write('Enter the number of cards you recieved: '),
 read(Numcards),
 assert(numPlayerCards(Numcards)),
 entercards(Numcards),
-write('Which room are you starting in? '),
-read(Room),
-assert(playerRoom(Room)),
 playLoop.
 
 % procedure to enter cards into play
@@ -128,7 +125,7 @@ nl,
 write('MENU ------------------------------'),nl,
 write('[1] for the current recommended move (guess)'),nl,
 write('[2] to enter card discovered from your turn'),nl,
-write('[3] to change the room you are currently in'),nl,
+write('[3] to enter or leave a room'),nl,
 write('[4] to enter an opponents failed guess'),nl,
 write('[5] to show remaining possible cards'),nl,
 write('[6] quit program'),nl,
@@ -158,15 +155,18 @@ entercards(1),
 nl,
 showOptions.
 
+%enter or leave a room
 executeOption(3) :-
 nl,
 write('You are currently in the '),
-playerRoom(X),
-write(X),
-write('. What room would you like to move to? '),
+%begin if-then-else
+(playerRoom(X) -> write(X),
+write('. Leave room [Y/N]? '),
+read(Ans),
+((Ans = 'Y' ; Ans = 'y') -> retract(playerRoom(_)),! ; true), showOptions ;
+write('corridor. Which room would you like to enter? '),
 read(Room),
-retract(playerRoom(_)),!,
-assert(playerRoom(Room)),
+assert(playerRoom(Room))),
 showOptions.
 
 % PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
