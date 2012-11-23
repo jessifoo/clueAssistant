@@ -3,39 +3,40 @@ Dynamic predicates to represent suspected weapons, persons, and rooms
 */
 
 % Current Suspects
-:- dynamic suspect/1.
-suspect(profplum).
-suspect(msscarlet).
-suspect(mrspeacock).
-suspect(revgreen).
-suspect(mrswhite).
-suspect(colmustard).
+:- dynamic suspect/2.
+suspect(profplum,0).
+suspect(msscarlet,0).
+suspect(mrspeacock,0).
+suspect(revgreen,0).
+suspect(mrswhite,0).
+suspect(colmustard,0).
 
 % Current Possible Weapons
-:- dynamic mweapon/1.
-mweapon(knife).
-mweapon(candlestick).
-mweapon(revolver).
-mweapon(rope).
-mweapon(leadpipe).
-mweapon(wrench).
+:- dynamic mweapon/2.
+mweapon(knife,0).
+mweapon(candlestick,0).
+mweapon(revolver,0).
+mweapon(rope,0).
+mweapon(leadpipe,0).
+mweapon(wrench,0).
 
 % Current Possible Rooms
-:- dynamic mroom/1.
-mroom(kitchen).
-mroom(ballroom).
-mroom(conservatory).
-mroom(billiardroom).
-mroom(library).
-mroom(study).
-mroom(hall).
-mroom(lounge).
-mroom(diningroom).
+:- dynamic mroom/2.
+mroom(kitchen,0).
+mroom(ballroom,0).
+mroom(conservatory,0).
+mroom(billiardroom,0).
+mroom(library,0).
+mroom(study,0).
+mroom(hall,0).
+mroom(lounge,0).
+mroom(diningroom,0).
 
 % Current player room
 :- dynamic playerRoom/1.
 
 % List of all cards which have been shown, shown cards are eliminated from solution.
+% format: shownCard(player,Card)
 :- dynamic shownCard/2.
 
 % Number of cards each player has.
@@ -126,7 +127,7 @@ write('MENU ------------------------------'),nl,
 write('[1] for the current recommended move (guess)'),nl,
 write('[2] to enter card discovered from your turn'),nl,
 write('[3] to enter or leave a room'),nl,
-write('[4] to enter an opponents failed guess'),nl,
+write('[4] to enter an opponents guess'),nl,
 write('[5] to show remaining possible cards'),nl,
 write('[6] quit program'),nl,
 write(':'),
@@ -170,12 +171,37 @@ assert(playerRoom(Room))),
 showOptions.
 
 % PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
-executeOption(4).
+executeOption(4) :-
+nl,
+write('Enter your opponents guess in the form [person,weapon,room] : '),
+read(GuessArray),
+opponentGuess(GuessArray),
+showOptions.
 
 % show remaining cards again
 executeOption(5) :- printAvailCards.
 
 executeOption(6) :- retractall(shownCard(_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)), false.
+
+% HELPER for executeOption(4) to process an opponents guess
+% modify suspect entry
+opponentGuess([H|T]) :-
+isPerson(H),
+(not(shownCard(_,H)) -> retract(suspect(H,Y)),
+incr(Y,Y1), assert(suspect(H,Y1)) ; true),
+opponentGuess(T).
+opponentGuess([H|T]) :-
+isWeapon(H),
+(not(shownCard(_,H)) -> retract(mweapon(H,Y)),
+incr(Y,Y1),assert(mweapon(H,Y1)) ; true),
+opponentGuess(T).
+opponentGuess([H]) :-
+isRoom(H),
+(not(shownCard(_,H)) -> retract(mroom(H,Y)),
+incr(Y,Y1),assert(mroom(H,Y1)) ; true).
+
+% number incrementer
+incr(X,X1) :- X1 is X+1.
 
 % Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
@@ -212,55 +238,6 @@ fail.
 clean :- abolish(shownCard/2).
 
 /* NOTES and ideas
-
-each card (person,weapon,room) will be represented by a two arrity predicate of the form (id,eval). Where eval represents the probability of it being correct (higher is LESS LIKELY)
-
-1. If it is the players turn they can execute a card ENTRY and cards can be removed
-from play. Also, if a card is PROPOSED and not shown, it can be entered directly as a solution.
-
-2. If it is NOT the players turn we are not shown the ID of any cards (we can not enter it into the system). Instead the player enters a query of the form (suspect,person,weapon,number) where number represents how many UNKNOWN cards are held up.
-
-    THEN, for each ID in the query we change the predicate to (id,eval+NUMBER) everytime a query is made and an unknown card is held up it increases the chance that the ID is NOT valid.
-
-EXAMPLE quick game.
-
-(profplum, 0)
-(mrspeacock, 0)
-(mrswhite, 0)
-(wrench, 0)
-(revolver, 0)
-(rope, 0)
-(hall, 0)
-(diningroom, 0)
-(study, 0)
-
-MY Turn
-(profplum, rope, study) - I am shown prof plum and rope
-* remove profplum
-* remove rope
-* confirm study (i.e. remove all other)
-
-(mrspeacock, 0)
-(mrswhite, 0)
-(wrench, 0)
-(revolver, 0)
-(study, 0)
-
-OTHER Player's Turn
-(mrspeacock, wrench, hall, 1) - ONE unknown is held up
-* add 1 to mrspeacock
-* add 1 to wrench
-* ignore hall since it's not in database anymore
-
-(mrspeacock, 1)
-(mrswhite, 0)
-(wrench, 1)
-(revolver, 0)
-(study, 0)
-
-RECOMMENDED PLAY
-
-(mrswhite, revolver, study) - THESE ARE NOW THE MOST LIKELY.
 
 
 */
