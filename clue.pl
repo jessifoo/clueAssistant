@@ -235,6 +235,30 @@ clean :- abolish(shownCard/2).
 
 /* NOTES and ideas
 
+1. Anthony
+
+make a dynamic predicate called
+opponentsCards(player,probability)
+
+when a player shows YOU a card during your turn it is added with probability of 100
+when a player holds up a card to beat the guess of another player
+
+case 1: no other opponent has any of the three cards
+ALL three possible cards are added with a probabilty of 30
+
+case 2: one of the cards is held by another opponent w/ prob 100
+two unheld cards are added with a probability of 50
+
+case 3: two of the cards is w/ prob 100
+unheld card is added to player w/ prob 100
+
+case 4: 
+
+2. Jessyka
+
+Keep track of room distances from player
+
+when you enter a room all the room values should also change based on the absolute distance from the room you are currently in. so say you have room(kitchen,1) room(study,0) room(library,2) then you go into the library… it becomes: room(library,2) room(study,1) room(kitchen,4)
 
 */
 
