@@ -32,6 +32,9 @@ mroom(hall).
 mroom(lounge).
 mroom(diningroom).
 
+% Current player room
+:- dynamic playerRoom/1.
+
 % List of all cards which have been shown, shown cards are eliminated from solution.
 :- dynamic shownCard/2.
 
@@ -120,7 +123,7 @@ showOptions :-
 nl,
 write('MENU ------------------------------'),nl,
 write('[1] for the current recommended move (guess)'),nl,
-write('[2] to enter card/cards discovered from your turn'),nl,
+write('[2] to enter card discovered from your turn'),nl,
 write('[3] to enter an opponents failed guess'),nl,
 write('[4] to show remaining possible cards'),nl,
 write('[5] quit program'),nl,
@@ -148,9 +151,7 @@ executeOption(2) :-
 nl,
 entercards(1),
 nl,
-write('Would you like to enter a another card [Y/N]? : '),
-read(Ans),
-enterAnotherCard(Ans).
+showOptions.
 
 % PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
 executeOption(3).
@@ -159,12 +160,6 @@ executeOption(3).
 executeOption(4) :- printAvailCards.
 
 executeOption(5) :- false.
-
-% HELPER for executeOption(2) whether to enter another card or go back to showOptions
-enterAnotherCard(X) :- X = 'Y' ; X = 'y',
-executeOption(2).
-enterAnotherCard(X) :- X = 'N' ; X = 'n',
-showOptions.
 
 % Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
