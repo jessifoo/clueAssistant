@@ -119,10 +119,11 @@ playLoop :- showOptions.
 showOptions :-
 nl,
 write('MENU ------------------------------'),nl,
-write('[1] for a recommended move (guess)'),nl,
-write('[2] for a card entry'),nl,
-write('[3] to show remaining cards'),nl,
-write('[4] quit program'),nl,
+write('[1] for the current recommended move (guess)'),nl,
+write('[2] to enter card/cards discovered from your turn'),nl,
+write('[3] to enter an opponents failed guess'),nl,
+write('[4] to show remaining possible cards'),nl,
+write('[5] quit program'),nl,
 write(':'),
 read(Option),
 executeOption(Option).
@@ -151,10 +152,13 @@ write('Would you like to enter a another card [Y/N]? : '),
 read(Ans),
 enterAnotherCard(Ans).
 
-% show remaining cards again
-executeOption(3) :- printAvailCards.
+% PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
+executeOption(3).
 
-executeOption(4) :- false.
+% show remaining cards again
+executeOption(4) :- printAvailCards.
+
+executeOption(5) :- false.
 
 % HELPER for executeOption(2) whether to enter another card or go back to showOptions
 enterAnotherCard(X) :- X = 'Y' ; X = 'y',
