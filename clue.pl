@@ -193,3 +193,57 @@ fail.
 % clean database of cards
 clean :- abolish(shownCard/2).
 
+/* NOTES and ideas
+
+each card (person,weapon,room) will be represented by a two arrity predicate of the form (id,eval). Where eval represents the probability of it being correct (higher is LESS LIKELY)
+
+1. If it is the players turn they can execute a card ENTRY and cards can be removed
+from play. Also, if a card is PROPOSED and not shown, it can be entered directly as a solution.
+
+2. If it is NOT the players turn we are not shown the ID of any cards (we can not enter it into the system). Instead the player enters a query of the form (suspect,person,weapon,number) where number represents how many UNKNOWN cards are held up.
+
+    THEN, for each ID in the query we change the predicate to (id,eval+NUMBER) everytime a query is made and an unknown card is held up it increases the chance that the ID is NOT valid.
+
+EXAMPLE quick game.
+
+(profplum, 0)
+(mrspeacock, 0)
+(mrswhite, 0)
+(wrench, 0)
+(revolver, 0)
+(rope, 0)
+(hall, 0)
+(diningroom, 0)
+(study, 0)
+
+MY Turn
+(profplum, rope, study) - I am shown prof plum and rope
+* remove profplum
+* remove rope
+* confirm study (i.e. remove all other)
+
+(mrspeacock, 0)
+(mrswhite, 0)
+(wrench, 0)
+(revolver, 0)
+(study, 0)
+
+OTHER Player's Turn
+(mrspeacock, wrench, hall, 1) - ONE unknown is held up
+* add 1 to mrspeacock
+* add 1 to wrench
+* ignore hall since it's not in database anymore
+
+(mrspeacock, 1)
+(mrswhite, 0)
+(wrench, 1)
+(revolver, 0)
+(study, 0)
+
+RECOMMENDED PLAY
+
+(mrswhite, revolver, study) - THESE ARE NOW THE MOST LIKELY.
+
+
+*/
+
