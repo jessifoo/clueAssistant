@@ -82,6 +82,8 @@ isPerson(revgreen).
 isPerson(mrswhite).
 isPerson(colmustard).
 
+
+
 % Valid card check
 isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
 
@@ -109,7 +111,6 @@ write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
 assert(shownCard(1,Card)),
-removeFromPlay(Card),
 M is N-1,
 entercards(M).
 
@@ -174,7 +175,7 @@ executeOption(4).
 % show remaining cards again
 executeOption(5) :- printAvailCards.
 
-executeOption(6) :- false.
+executeOption(6) :- retractall(shownCard(_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)), false.
 
 % Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
@@ -184,6 +185,7 @@ printSuspects :-
 nl,
 write('Current Suspects: '),nl,nl,
 suspect(X),
+not(shownCard(1,X)),
 write(X),
 nl,
 fail.
@@ -192,6 +194,7 @@ printWeapons :-
 nl,
 write('Possible Weapons: '),nl,nl,
 mweapon(X),
+not(shownCard(1,X)),
 write(X),
 nl,
 fail.
@@ -200,6 +203,7 @@ printRooms :-
 nl,
 write('Possible Rooms: '),nl,nl,
 mroom(X),
+not(shownCard(1,X)),
 write(X),
 nl,
 fail.
