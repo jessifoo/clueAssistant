@@ -14,8 +14,9 @@ Dynamic predicates to represent suspected weapons, persons, and rooms
 % Room player is currently in (no room = corridor)
 :- dynamic playerRoom/1.
 
-% List of all cards which have been shown or held up, shown cards are assigned prob of 100% and eliminated from solution. An unknown card which is held up is assigned a probability that the player has that card.
-% shownCard(player,Card,probability)
+/* List of all cards which have been shown or held up, shown cards are assigned prob of 100%
+and eliminated from solution. An unknown card which is held up is assigned a probability
+that the player has that card. shownCard(player,Card,probability) */
 :- dynamic shownCard/3.
 
 % Number of cards each player has.
@@ -23,6 +24,10 @@ Dynamic predicates to represent suspected weapons, persons, and rooms
 
 % Number of players in the game
 :- dynamic numPlayers/1.
+
+% holds the valid cards from opponent an guess
+% guessCards(ID,0 = unowned card,1 = owned by THIS opponent)
+:- dynamic guessCards/2.
 
 % SOLUTION predicate
 %murderer(X) :- suspect(),weapon(),room()
@@ -77,6 +82,7 @@ buildRooms :- isRoom(Z),assert(mroom(Z,0)),fail.
 
 % BEGIN GAMEPLAY PREDICATES ---------------------
 
+% START program and enter play loop.
 start :-
 builddynamics,
 write('Welcome to the Clue Assistant program. ========='),nl,nl,
@@ -89,7 +95,7 @@ assert(numPlayerCards(Numcards)),
 entercards(1,Numcards),
 playLoop.
 
-% procedure to enter cards into play
+% ENTERCARDS procedure to enter KNOWN cards (Player, Number of Cards to Enter)
 entercards(_,0).
 entercards(P,N) :-
 N>0, % make sure positive number
@@ -100,15 +106,10 @@ assert(shownCard(P,Card,100)),
 M is N-1,
 entercards(P,M).
 
-% removes a card that has been entered from possible solutions.
-removeFromPlay(X) :- isWeapon(X), retract(mweapon(X)).
-removeFromPlay(X) :- isPerson(X), retract(suspect(X)).
-removeFromPlay(X) :- isRoom(X), retract(mroom(X)).
-
-% loop for gameplay
+% PLAYLOOP for gameplay
 playLoop :- showOptions.
 
-% menu for asking for recommended move or enter more cards into play
+% SHOWOPTIONS - MAIN MENU ===================
 showOptions :-
 nl,
 write('MENU ------------------------------'),nl,
@@ -122,13 +123,14 @@ write(':'),
 read(Option),
 executeOption(Option).
 
-% MIN Value Finder
+% MIN Value Finder for evaluated numbers attached to Cards
 min(X) :- suspect(X,Z),not((suspect(X,Other),Other<Z)),!.
 min(X) :- mweapon(X,Z),not((mweapon(X,Other),Other<Z)),!.
 min(X) :- mroom(X,Z),not((mroom(X,Other),Other<Z)),!.
 
-% helper for showOptions executes the selected option.
-% Gives the best guess based on the evaluator functions of the items in database
+% HELPER for showOptions (MENU) executes selected option.
+
+% EXECUTEOPTION[1] Gives the best guess based on the evaluator functions of the items in database
 executeOption(1) :-
 nl,
 write('A good guess is: '),
@@ -144,6 +146,7 @@ write(Z),
 nl,
 showOptions.
 
+% EXECUTEOPTION[2] Enters a card shown by an opponent
 executeOption(2) :-
 nl,
 write('Which Player showed you the card (number)? '),
@@ -152,7 +155,7 @@ entercards(Player,1),
 nl,
 showOptions.
 
-%enter or leave a room
+% EXECUTEOPTION[3] Tell the program you are entering or leaving a room
 executeOption(3) :-
 nl,
 write('You are currently in the '),
@@ -166,7 +169,7 @@ read(Room),
 assert(playerRoom(Room))), % end if-then-else
 showOptions.
 
-% PUT CODE TO PROCESS AN OPPONENTS GUESS HERE ////
+% EXECUTEOPTION[4] Process a guess by an opponent
 executeOption(4) :-
 nl,
 write('Which opponent made the guess (number)? '),
@@ -176,26 +179,27 @@ read(GuessArray),
 opponentGuess(GuessArray,Player),
 showOptions.
 
-% show remaining cards again
+% EXECUTEOPTION[5] Print to screen the remaining possible cards
 executeOption(5) :- printAvailCards.
 
+% EXECUTEOPTION[6] Clear database and exit program.
 executeOption(6) :- clear.
 
+% CLEAR - Retracts all dynamic elements
 clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),
     retractall(suspect(_,_)), retractall(mweapon(_,_)),
     retractall(mroom(_,_)),retractall(guessCards(_)), false.
 
-%check its not out of play and then assign card to player
+% OPPONENTGUESS - HELPER for menu item [4] - assigns each card to dynamic guessCards, then runs sub HELPER
+% assignCards which assigns the card to the opponent with a probability
 opponentGuess([H|T],P) :-
 (not(shownCard(_,H,100)) -> assert(guessCards(H,0)) ; true),
 ((shownCard(P,H,100)) -> assert(guessCards(H,1)) ; true),
 opponentGuess(T,P).
 opponentGuess([],P) :- assignCards(P), showOptions.
 
-% holds the valid cards from opponent guess
-% guessCards(ID,0 = unowned card,1 = owned by THIS opponent)
-:- dynamic guessCards/2.
 
+% ASSIGNCARDS - HELPER for opponentGuess -
 
 %case 1: no other opponent has any of the three cards
 %ALL three possible cards are added with a probabilty of 30
@@ -235,34 +239,18 @@ assert(shownCard(P,X,30)),!.
 
 assignCards(_).
 
+
+% ADDER - ads two values together
 adder(X,Y,Z) :- Z is X+Y.
 
-/*
-% HELPER for executeOption(4) to process an opponents guess
-% modify suspect entry
-opponentGuess([H|T]) :-
-isPerson(H),
-(not(shownCard(_,H,_)) -> retract(suspect(H,Y)),
-incr(Y,Y1), assert(suspect(H,Y1)) ; true),
-opponentGuess(T).
-opponentGuess([H|T]) :-
-isWeapon(H),
-(not(shownCard(_,H,_)) -> retract(mweapon(H,Y)),
-incr(Y,Y1),assert(mweapon(H,Y1)) ; true),
-opponentGuess(T).
-opponentGuess([H]) :-
-isRoom(H),
-(not(shownCard(_,H,_)) -> retract(mroom(H,Y)),
-incr(Y,Y1),assert(mroom(H,Y1)) ; true).
-*/
-
-% number incrementer
+% INCR - number incrementer
 incr(X,X1) :- X1 is X+1.
 
-% Lists all the cards that have not been shown yet
+% PRINTAVAILCARDS - Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
 printAvailCards :- showOptions.
 
+%PRINTSUSPECTS - HELPER for printAvailCards
 printSuspects :-
 nl,
 write('Current Suspects: '),nl,nl,
@@ -272,6 +260,7 @@ write(X),
 nl,
 fail.
 
+%PRINTWEAPONS - HELPER for printAvailCards
 printWeapons :-
 nl,
 write('Possible Weapons: '),nl,nl,
@@ -281,6 +270,7 @@ write(X),
 nl,
 fail.
 
+%PRINTROOMS - HELPER for printAvailCards
 printRooms :-
 nl,
 write('Possible Rooms: '),nl,nl,
