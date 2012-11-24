@@ -174,9 +174,13 @@ executeOption(4) :-
 nl,
 write('Which opponent made the guess (number)? '),
 read(Player),
-write('Enter your opponents guess in the form [person,weapon,room] : '),
-read(GuessArray),
-opponentGuess(GuessArray,Player),
+write('Enter the weapon they suggested: '),
+read(SuggestedWeapon),
+write('Enter the room they suggested: '),
+read(SuggestedRoom),
+write('Enter the person they suggested: '),
+read(SuggestedPerson),
+opponentGuess([SuggestedPerson,SuggestedWeapon,SuggestedRoom],Player),
 showOptions.
 
 % EXECUTEOPTION[5] Print to screen the remaining possible cards
@@ -279,6 +283,115 @@ not(shownCard(_,X,100)),
 write(X),
 nl,
 fail.
+
+% Steps(X,Y,Num): Num is Number of steps needed to get from X to Y
+/*
+Hall	 
+*/
+steps(hall,study,4).
+steps(hall,lounge,8).
+steps(hall,library,7).
+steps(hall,diningroom,8).
+steps(hall,billiardroom,15).
+steps(hall,conservatory,20).
+steps(hall,ballroom,13).
+steps(hall,kitchen,19).
+
+/*
+Study	 
+*/
+steps(study,hall,4).
+steps(study,lounge,17).
+steps(study,library,7).
+steps(study,diningroom,17).
+steps(study,billiardroom,15).
+steps(study,conservatory,20).
+steps(study,ballroom,17).
+steps(study,kitchen,1).
+
+/*
+Lounge	 
+*/
+steps(lounge,hall,8).
+steps(lounge,study,17).
+steps(lounge,library,14).
+steps(lounge,diningroom,4).
+steps(lounge,billiardroom,22).
+steps(lounge,conservatory,1).
+steps(lounge,ballroom,15).
+steps(lounge,kitchen,19).
+
+/*
+Library	 
+*/
+steps(library,hall,7).
+steps(library,study,7).
+steps(library,lounge,14).
+steps(library,diningroom,14).
+steps(library,billiardroom,4).
+steps(library,conservatory,15).
+steps(library,ballroom,12).
+steps(library,kitchen,23).
+
+/*
+Dining Room	 
+*/
+steps(diningroom,hall,8).
+steps(diningroom,study,17).
+steps(diningroom,lounge,4).
+steps(diningroom,library,14).
+steps(diningroom,billiardroom,14).
+steps(diningroom,conservatory,19).
+steps(diningroom,ballroom,7).
+steps(diningroom,kitchen,11).
+
+/*
+Billiard Room	 
+*/
+steps(billiardroom,hall,15).
+steps(billiardroom,study,15).
+steps(billiardroom,lounge,22).
+steps(billiardroom,library,4).
+steps(billiardroom,diningroom,14).
+steps(billiardroom,conservatory,7).
+steps(billiardroom,ballroom,6).
+steps(billiardroom,kitchen,17).
+
+/*
+Conservatory	 
+*/
+steps(conservatory,hall,20).
+steps(conservatory,study,20).
+steps(conservatory,lounge,1).
+steps(conservatory,library,15).
+steps(conservatory,diningroom,19).
+steps(conservatory,billiardroom,7).
+steps(conservatory,ballroom,4).
+steps(conservatory,kitchen,20).
+
+/*
+Ball Room	 
+*/
+steps(ballroom,hall,13).
+steps(ballroom,study,17).
+steps(ballroom,lounge,15).
+steps(ballroom,library,12).
+steps(ballroom,diningroom,7).
+steps(ballroom,billiardroom,6).
+steps(ballroom,conservatory,4).
+steps(ballroom,kitchen,7).
+
+/*
+Kitchen	 
+*/
+steps(kitchen,hall,19).
+steps(kitchen,study,1).
+steps(kitchen,lounge,19).
+steps(kitchen,library,23).
+steps(kitchen,diningroom,11).
+steps(kitchen,billiardroom,17).
+steps(kitchen,conservatory,20).
+steps(kitchen,ballroom,,7).
 
 
 /* NOTES and ideas
