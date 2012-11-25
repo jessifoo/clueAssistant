@@ -284,6 +284,37 @@ write(X),
 nl,
 fail.
 
+updateRooms(OldRoom,NewRoom) :-
+updateOldRoom(OldRoom,NewRoom),
+rooms(X),
+del(OldRoom,X,Y),
+updateRestRooms(Y,NewRoom).
+
+updateOldRoom(OldRoom,NewRoom) :-
+steps(OldRoom,NewRoom,X),
+mroom(OldRoom,Y),
+retract(mroom(OldRoom,Y),
+Z is Y-X,
+assert(mroom(OldRoom,Z)).
+
+updateRestRooms([],NewRoom).
+updateRestRooms([H|T],NewRoom) :- updateRoom(H,NewRoom), updateRestRooms(T,NewRoom).
+
+updateRoom(Room,NewRoom) :-
+steps(NewRoom,Room,X),
+
+
+getNewCurrentRoomValue(Room,X,X1).
+
+roomsExceptGivenRoom(Room,Y) :- rooms(X), del(Room,X,Y).
+rooms([hall,study,lounge,library,diningroom,billiardroom,conservatory,ballroom,kitchen]).
+
+% del(X,L,L1).
+% delete element member X from list L
+del(X,[X|L],L).
+del(X,[A|L],[A|L1]):-
+ del(X,L,L1).
+
 % Steps(X,Y,Num): Num is Number of steps needed to get from X to Y
 /*
 Hall	 
@@ -391,7 +422,7 @@ steps(kitchen,library,23).
 steps(kitchen,diningroom,11).
 steps(kitchen,billiardroom,17).
 steps(kitchen,conservatory,20).
-steps(kitchen,ballroom,,7).
+steps(kitchen,ballroom,7).
 
 
 /* NOTES and ideas
