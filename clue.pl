@@ -294,21 +294,36 @@ nl,
 (playerRoom(X) -> Room = X;
 write('What room are you in/nearest too?: '),nl,
 read(Room)),nl,
-write(Room),nl,
-minValidRoom(Room,Y),!,
+write('What value did you roll?'),nl,
+read(Value),nl,
+minValidRoom(Room,Value,Y),!,
 write('You should head to the: '),
 write(Y),!.
 
-% minValidRoom(Room,X), Room is the room the player is in, X is the room with the closest distance out of remaining shown cards
-minValidRoom(Room,X) :-
-findall(A,shownCard(A,_,100),Showncards),
-findall(B,steps(Room,B,_),Rooms),
+% minValidRoom(Room,Value,X), Room is the room the player is in, Value is the result of the players dice role/
+% The function finds all the rooms the user can get to within the dice roll, if there are no rooms in that list that aren't already known,
+% then the nearest room is given out of the rooms unknown, otherwise closest room is given
+minValidRoom(Room,Value,X) :-
+findall(A,shownCard(_,A,100),Showncards),
+findall(B,(steps(Room,B,Number),Number =< Value),Rooms),
 subtract(Rooms,Showncards,RemainingRooms),
+length(RemainingRooms,NN),
+(NN > 0 ->
+/* need to implement function which actually turns lowest room probability value as opposed to closest room*/
 length(RemainingRooms,N),
 getSteps(N,Room,RemainingRooms,Num),
 min_in_list(Num,Min),!,
 steps(Room,Ans,Min),!,
-X=Ans.
+X=Ans 
+
+; findall(A1,shownCard(_,A1,100),Showncards1),
+findall(B1,steps(Room,B1,_),Rooms1),
+subtract(Rooms1,Showncards1,RemainingRooms1),
+length(RemainingRooms1,N1),
+getSteps(N1,Room,RemainingRooms1,Num1),
+min_in_list(Num1,Min1),!,
+steps(Room,Ans1,Min1),!,
+X=Ans1).
 
 getSteps(0,_,_,_).
 getSteps(1,R,RL,Num) :- steps(R,RL,Num),!.
@@ -319,6 +334,7 @@ getSteps(5,R,[R1,R2,R3,R4,R5],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3
 getSteps(6,R,[R1,R2,R3,R4,R5,R6],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,Num=[A,B,C,D,E,F].
 getSteps(7,R,[R1,R2,R3,R4,R5,R6,R7],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,Num=[A,B,C,D,E,F,G].
 getSteps(8,R,[R1,R2,R3,R4,R5,R6,R7,R8],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,steps(R,R8,H),!,Num=[A,B,C,D,E,F,G,H].
+
 
 min_in_list([Min],Min).                 % We've found the minimum
 min_in_list([H,K|T],M) :-
