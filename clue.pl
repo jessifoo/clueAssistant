@@ -292,7 +292,7 @@ fail.
 suggestRoom :-
 nl,
 (playerRoom(X) -> Room = X;
-write('What room are you nearest too?: '),nl,
+write('What room are you in/nearest too?: '),nl,
 read(Room)),nl,
 write(Room),nl,
 minValidRoom(Room,Y),!,
