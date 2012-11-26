@@ -118,7 +118,8 @@ write('[2] to enter card discovered from your turn'),nl,
 write('[3] to enter or leave a room'),nl,
 write('[4] to enter an opponents guess'),nl,
 write('[5] to show remaining possible cards'),nl,
-write('[6] quit program'),nl,
+write('[6] for the recommended room you should move to next'),nl,
+write('[7] quit program'),nl,
 write(':'),
 read(Option),
 executeOption(Option).
@@ -186,8 +187,11 @@ showOptions.
 % EXECUTEOPTION[5] Print to screen the remaining possible cards
 executeOption(5) :- printAvailCards.
 
-% EXECUTEOPTION[6] Clear database and exit program.
-executeOption(6) :- clear.
+% EXECUTEOPTION[6] suggest best room to move to
+executeOption(6) :- suggestRoom.
+
+% EXECUTEOPTION[7] Clear database and exit program.
+executeOption(7) :- clear.
 
 % CLEAR - Retracts all dynamic elements
 clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),
@@ -240,7 +244,6 @@ assert(shownCard(P,X,30)),!.
 %case 4: cards are held by other players with a percentage < 100
 %each card (A,B,C) is assigned 30% * (100%-percentage of card being held by others)
 
-
 assignCards(_).
 
 
@@ -284,36 +287,48 @@ write(X),
 nl,
 fail.
 
-updateRooms(OldRoom,NewRoom) :-
-updateOldRoom(OldRoom,NewRoom),
-rooms(X),
-del(OldRoom,X,Y),
-updateRestRooms(Y,NewRoom).
+% Function to suggest room user should move to next
+% Currently returns closest room out of rooms not in shownCard function. Should also take into account probabilities.
+suggestRoom :-
+nl,
+(playerRoom(X) -> Room = X;
+write('What room are you nearest too?: '),nl,
+read(Room)),nl,
+write(Room),nl,
+minValidRoom(Room,Y),!,
+write('You should head to the: '),
+write(Y),!.
 
-updateOldRoom(OldRoom,NewRoom) :-
-steps(OldRoom,NewRoom,X),
-mroom(OldRoom,Y),
-retract(mroom(OldRoom,Y),
-Z is Y-X,
-assert(mroom(OldRoom,Z)).
+% minValidRoom(Room,X), Room is the room the player is in, X is the room with the closest distance out of remaining shown cards
+minValidRoom(Room,X) :-
+findall(A,shownCard(A,_,100),Showncards),
+findall(B,steps(Room,B,_),Rooms),
+subtract(Rooms,Showncards,RemainingRooms),
+length(RemainingRooms,N),
+getSteps(N,Room,RemainingRooms,Num),
+min_in_list(Num,Min),!,
+steps(Room,Ans,Min),!,
+X=Ans.
 
-updateRestRooms([],NewRoom).
-updateRestRooms([H|T],NewRoom) :- updateRoom(H,NewRoom), updateRestRooms(T,NewRoom).
+getSteps(0,_,_,_).
+getSteps(1,R,RL,Num) :- steps(R,RL,Num),!.
+getSteps(2,R,[R1,R2],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,Num=[A,B].
+getSteps(3,R,[R1,R2,R3],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,Num=[A,B,C].
+getSteps(4,R,[R1,R2,R3,R4],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,Num=[A,B,C,D].
+getSteps(5,R,[R1,R2,R3,R4,R5],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,Num=[A,B,C,D,E].
+getSteps(6,R,[R1,R2,R3,R4,R5,R6],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,Num=[A,B,C,D,E,F].
+getSteps(7,R,[R1,R2,R3,R4,R5,R6,R7],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,Num=[A,B,C,D,E,F,G].
+getSteps(8,R,[R1,R2,R3,R4,R5,R6,R7,R8],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,steps(R,R8,H),!,Num=[A,B,C,D,E,F,G,H].
 
-updateRoom(Room,NewRoom) :-
-steps(NewRoom,Room,X),
+min_in_list([Min],Min).                 % We've found the minimum
+min_in_list([H,K|T],M) :-
+    H =< K,                             % H is less than or equal to K
+    min_in_list([H|T],M).               % so use H
 
+min_in_list([H,K|T],M) :-
+    H > K,                              % H is greater than K
+    min_in_list([K|T],M).               % so use K
 
-getNewCurrentRoomValue(Room,X,X1).
-
-roomsExceptGivenRoom(Room,Y) :- rooms(X), del(Room,X,Y).
-rooms([hall,study,lounge,library,diningroom,billiardroom,conservatory,ballroom,kitchen]).
-
-% del(X,L,L1).
-% delete element member X from list L
-del(X,[X|L],L).
-del(X,[A|L],[A|L1]):-
- del(X,L,L1).
 
 % Steps(X,Y,Num): Num is Number of steps needed to get from X to Y
 /*
