@@ -304,19 +304,17 @@ write(Y),!.
 % The function finds all the rooms the user can get to within the dice roll, if there are no rooms in that list that aren't already known,
 % then the nearest room is given out of the rooms unknown, otherwise closest room is given
 minValidRoom(Room,Value,X) :-
-findall(A,shownCard(_,A,100),Showncards),
 findall(B,(steps(Room,B,Number),Number =< Value),Rooms),
-subtract(Rooms,Showncards,RemainingRooms),
-length(RemainingRooms,NN),
-(NN > 0 ->
-/* need to implement function which actually turns lowest room probability value as opposed to closest room*/
-length(RemainingRooms,N),
-getSteps(N,Room,RemainingRooms,Num),
-min_in_list(Num,Min),!,
-steps(Room,Ans,Min),!,
-X=Ans 
-
-; findall(A1,shownCard(_,A1,100),Showncards1),
+findall(A,(shownCard(_,A,B),B<100),ProbableCards),
+intersection(Rooms,ProbableCards,UsableRooms),
+length(UsableRooms,NU),
+(NU > 0 ->
+(NU = 1 -> [X] = UsableRooms; getRooms(UsableRooms,Ans)),
+min_in_list(Ans,Min),!,
+shownCard(_,Answer,Min),
+X = Answer
+; 
+findall(A1,shownCard(_,A1,100),Showncards1),
 findall(B1,steps(Room,B1,_),Rooms1),
 subtract(Rooms1,Showncards1,RemainingRooms1),
 length(RemainingRooms1,N1),
@@ -336,6 +334,12 @@ getSteps(7,R,[R1,R2,R3,R4,R5,R6,R7],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,step
 getSteps(8,R,[R1,R2,R3,R4,R5,R6,R7,R8],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,steps(R,R8,H),!,Num=[A,B,C,D,E,F,G,H].
 
 
+getRooms([R1,R2],X) :- shownCard(_,R1,A),shownCard(_,R2,B),X=[A,B].
+getRooms([R1,R2,R3],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),X=[A,B,C].
+getRooms([R1,R2,R3,R4],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),X=[A,B,C,D].
+getRooms([R1,R2,R3,R4,R5],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),shownCard(_,R5,E),X=[A,B,C,D,E].
+
+% Returns Min, the minimum value in list
 min_in_list([Min],Min).                 % We've found the minimum
 min_in_list([H,K|T],M) :-
     H =< K,                             % H is less than or equal to K
@@ -344,7 +348,7 @@ min_in_list([H,K|T],M) :-
 min_in_list([H,K|T],M) :-
     H > K,                              % H is greater than K
     min_in_list([K|T],M).               % so use K
-
+ 
 
 % Steps(X,Y,Num): Num is Number of steps needed to get from X to Y
 /*
