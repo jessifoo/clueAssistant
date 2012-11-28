@@ -2,15 +2,6 @@
 Dynamic predicates to represent suspected weapons, persons, and rooms
 */
 
-% Current Suspects suspect(id,eval)
-:- dynamic suspect/2.
-
-% Current Possible Weapons mweapon(id,eval)
-:- dynamic mweapon/2.
-
-% Current Possible Rooms mroom(id,eval)
-:- dynamic mroom/2.
-
 % Room player is currently in (no room = corridor)
 :- dynamic playerRoom/1.
 
@@ -25,12 +16,8 @@ that the player has that card. shownCard(player,Card,probability) */
 % Number of players in the game
 :- dynamic numPlayers/1.
 
-% holds the valid cards from opponent an guess
-% guessCards(ID,0 = unowned card,1 = owned by THIS opponent)
-:- dynamic guessCards/2.
-
-% SOLUTION predicate
-%murderer(X) :- suspect(),weapon(),room()
+% holds the cards from opponent an guess
+:- dynamic guessCards/1.
 
 /*
 Build predicate to take in game init: num players, who starts, cards given
@@ -70,21 +57,10 @@ isPerson(colmustard).
 % Valid card check
 isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
 
-% builddynamics takes all possible items and creates a dynamic game w/ eval arrity
-builddynamics :- buildSuspects.
-builddynamics :- buildWeapons.
-builddynamics :- buildRooms.
-builddynamics.
-
-buildSuspects :- isPerson(X),assert(suspect(X,0)),fail.
-buildWeapons :- isWeapon(Y),assert(mweapon(Y,0)),fail.
-buildRooms :- isRoom(Z),assert(mroom(Z,0)),fail.
-
 % BEGIN GAMEPLAY PREDICATES ---------------------
 
 % START program and enter play loop.
 start :-
-builddynamics,
 write('Welcome to the Clue Assistant program. ========='),nl,nl,
 write('Enter the number of players: '),
 read(Players),
@@ -102,7 +78,7 @@ N>0, % make sure positive number
 write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
-assert(shownCard(P,Card,100)),
+assert(shownCard(P,Card,1.0)),
 M is N-1,
 entercards(P,M).
 
@@ -124,9 +100,9 @@ read(Option),
 executeOption(Option).
 
 % MIN Value Finder for evaluated numbers attached to Cards
-min(X) :- suspect(X,Z),not((suspect(X,Other),Other<Z)),!.
-min(X) :- mweapon(X,Z),not((mweapon(X,Other),Other<Z)),!.
-min(X) :- mroom(X,Z),not((mroom(X,Other),Other<Z)),!.
+min(X) :- isPerson(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
+min(X) :- isWeapon(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
+min(X) :- isRoom(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
 
 % HELPER for showOptions (MENU) executes selected option.
 
@@ -134,9 +110,10 @@ min(X) :- mroom(X,Z),not((mroom(X,Other),Other<Z)),!.
 executeOption(1) :-
 nl,
 write('A good guess is: '),
-suspect(X,_),min(X),not(shownCard(_,X,_)),
-mweapon(Y,_),min(Y),not(shownCard(_,Y,_)),
-mroom(Z,_),min(Z),not(shownCard(_,Z,_)),
+% takes an unshown card or the lowest probability card
+isPerson(X),(not(shownCard(_,X,_)) -> true ; min(X),not(shownCard(_,X,1.0))),
+isWeapon(Y),(not(shownCard(_,Y,_)) -> true ; min(Y),not(shownCard(_,Y,1.0))),
+isRoom(Z),(not(shownCard(_,Z,_)) -> true ; min(Z),not(shownCard(_,Z,1.0))),
 write(X),
 write(' with the '),
 write(Y),
@@ -186,65 +163,42 @@ executeOption(5) :- printAvailCards.
 executeOption(6) :- clear.
 
 % CLEAR - Retracts all dynamic elements
-clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),
-    retractall(suspect(_,_)), retractall(mweapon(_,_)),
-    retractall(mroom(_,_)),retractall(guessCards(_)), false.
+clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),retractall(guessCards(_)), false.
 
 % OPPONENTGUESS - HELPER for menu item [4] - assigns each card to dynamic guessCards, then runs sub HELPER
 % assignCards which assigns the card to the opponent with a probability
 opponentGuess([H|T],P) :-
-(not(shownCard(_,H,100)) -> assert(guessCards(H,0)) ; true),
-((shownCard(P,H,100)) -> assert(guessCards(H,1)) ; true),
+assert(guessCards(H)),
 opponentGuess(T,P).
 opponentGuess([],P) :- assignCards(P), showOptions.
 
 
 % ASSIGNCARDS - HELPER for opponentGuess -
+/*
+cards are held by other players with a percentage <= 1.0
+each card (A,B,C) is assigned
+30% * products(100%-percentage of card being held by others)i, i = 1...n
+e.g. (1,knife,0.3),(2,knife,0.3) -> P(knife) for player 3  = P(knife)*(0.7*0.8) = P(knife)*0.56
+the prob of p1 not having is 70% the prob of p2 not having is 80%. The prob of them BOTH
+not having is .7*.8. And the prob of p3 is his probability of having P(knife) *
+the probability that the other players DON'T have it. */
 
-%case 1: no other opponent has any of the three cards
-%ALL three possible cards are added with a probabilty of 30
+assignCards(P) :- guessCards(X),guessCards(Y),guessCards(Z),
+X \= Y, Y \= Z, X \= Z, % assign guessCards to vars
+addProb(X,XP), addProb(Y,YP), addProb(Z,ZP),
+assert(shownCard(P,X,XP)),
+assert(shownCard(P,Y,YP)),
+assert(shownCard(P,Z,ZP)).
 
-assignCards(P) :- guessCards(X,0),guessCards(Y,0),guessCards(Z,0),
-X \= Y, Y \= Z, X \= Z,
-assert(shownCard(P,X,30)),assert(shownCard(P,Y,30)),assert(shownCard(P,Z,30)),!.
+% ADDPROB - HELPER for assignCards (card,Probability of player having)
+addProb(X,Y) :- findall(P,shownCard(_,X,P),Z),addProbHelp(Z,SProb), Y is 0.30*SProb.
 
-%case 2: one of the cards is held by an opponent != P w/ prob 100
-%two unheld cards are added with a probability of 50
-
-assignCards(P) :- guessCards(X,0),guessCards(Y,0),
-X \= Y,
-assert(shownCard(P,X,50)),assert(shownCard(P,Y,50)),!.
-
-%case 2b: one of the cards is held by this opponent == P w/ prob 100
-
-assignCards(P) :- guessCards(X,0),guessCards(Y,0),guessCards(Z,1),
-X \= Y, Y \= Z, X \= Z,
-assert(shownCard(P,X,30)),assert(shownCard(P,Y,30)),!.
-
-%case 3: two of the cards are held by opponent != P w/ prob 100
-%unheld card is added to player w/ prob 100
-
-assignCards(P) :- guessCards(X),
-assert(shownCard(P,X,100)),!.
-
-%case 3b: two of the cards are held by this opponent == P w/ prob 100
-
-assignCards(P) :- guessCards(X,0),guessCards(Y,1),guessCards(Z,1),
-X \= Y, Y \= Z, X \= Z,
-assert(shownCard(P,X,30)),!.
-
-%case 4: cards are held by other players with a percentage < 100
-%each card (A,B,C) is assigned 30% * (100%-percentage of card being held by others)
-
-
-assignCards(_).
-
-
-% ADDER - ads two values together
-adder(X,Y,Z) :- Z is X+Y.
-
-% INCR - number incrementer
-incr(X,X1) :- X1 is X+1.
+% ADDPROBHELP - HELPER for addProb. Product of card probs HELPER
+addProbHelp([],1).
+addProbHelp([H|T],Sum) :-
+addProbHelp(T,Sum1),
+H2 is 1 - H,
+Sum is H2 * Sum1.
 
 % PRINTAVAILCARDS - Lists all the cards that have not been shown yet
 printAvailCards :- printSuspects ; printRooms ; printWeapons.
@@ -254,8 +208,8 @@ printAvailCards :- showOptions.
 printSuspects :-
 nl,
 write('Current Suspects: '),nl,nl,
-suspect(X,_),
-not(shownCard(_,X,100)),
+isPerson(X),
+not(shownCard(_,X,1.0)),
 write(X),
 nl,
 fail.
@@ -264,8 +218,8 @@ fail.
 printWeapons :-
 nl,
 write('Possible Weapons: '),nl,nl,
-mweapon(X,_),
-not(shownCard(_,X,100)),
+isWeapon(X),
+not(shownCard(_,X,1.0)),
 write(X),
 nl,
 fail.
@@ -274,8 +228,8 @@ fail.
 printRooms :-
 nl,
 write('Possible Rooms: '),nl,nl,
-mroom(X,_),
-not(shownCard(_,X,100)),
+isRoom(X),
+not(shownCard(_,X,1.0)),
 write(X),
 nl,
 fail.
@@ -283,30 +237,8 @@ fail.
 
 /* NOTES and ideas
 
-1. Anthony
-
-make a dynamic predicate called
-opponentsCards(player,card,probability)
-
-ADD all YOUR cards with prob 100
-
-when a player shows YOU a card during your turn it is added with probability of 100
-
-when a player holds up a card to beat the guess of another player
-
-case 1: no other opponent has any of the three cards
-ALL three possible cards are added with a probabilty of 30
-
-case 2: one of the cards is held by another opponent w/ prob 100
-two unheld cards are added with a probability of 50
-
-case 3: two of the cards are held by opponents w/ prob 100
-unheld card is added to player w/ prob 100
-
-case 4: cards are held by other players with a percentage < 100
-each card (A,B,C) is assigned 30% * (100%-percentage of card being held by others)
-
-
+1. Bugs with Probability. What if player holding up cards contains a probability already.
+1a. Fix Best Guess Function (should have the lowest SUM of probabilities)
 
 
 2. Jessyka
