@@ -338,6 +338,9 @@ getRooms([R1,R2],X) :- shownCard(_,R1,A),shownCard(_,R2,B),X=[A,B].
 getRooms([R1,R2,R3],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),X=[A,B,C].
 getRooms([R1,R2,R3,R4],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),X=[A,B,C,D].
 getRooms([R1,R2,R3,R4,R5],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),shownCard(_,R5,E),X=[A,B,C,D,E].
+getRooms([R1,R2,R3,R4,R5,R6],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),shownCard(_,R5,E),shownCard(_,R6,F),X=[A,B,C,D,E,F].
+getRooms([R1,R2,R3,R4,R5,R6,R7],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),shownCard(_,R5,E),shownCard(_,R6,F),shownCard(_,R7,G),X=[A,B,C,D,E,F,G].
+getRooms([R1,R2,R3,R4,R5,R6,R7,R8],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),shownCard(_,R5,E),shownCard(_,R6,F),shownCard(_,R7,G),shownCard(_,R8,H),X=[A,B,C,D,E,F,G,H].
 
 % Returns Min, the minimum value in list
 min_in_list([Min],Min).                 % We've found the minimum
