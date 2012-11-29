@@ -101,9 +101,9 @@ read(Option),
 executeOption(Option).
 
 % MIN Value Finder for evaluated numbers attached to Cards
-min(X) :- isPerson(X),addProb(X,Z),not((addProb(X,Other),Other<Z)),!.
-min(X) :- isWeapon(X),addProb(X,Z),not((addProb(X,Other),Other<Z)),!.
-min(X) :- isRoom(X),addProb(X,Z),not((addProb(X,Other),Other<Z)),!.
+min(X) :- isPerson(X),addProb(X,Z),not((isPerson(Y),addProb(Y,Other),Other<Z)),!.
+min(X) :- isWeapon(X),addProb(X,Z),not((isWeapon(Y),addProb(Y,Other),Other<Z)),!.
+min(X) :- isRoom(X),addProb(X,Z),not((isRoom(Y),addProb(Y,Other),Other<Z)),!.
 
 % ADDPROB - HELPER for assignCards (card,Probability of player having)
 addProb(X,Y) :- findall(P,shownCard(_,X,P),Z),addProbHelp(Z,SProb), Y is SProb.
