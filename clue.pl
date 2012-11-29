@@ -187,7 +187,7 @@ clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall
 opponentGuess([H|T],P) :-
 assert(guessCards(H)),
 opponentGuess(T,P).
-opponentGuess([],P) :- assignCards(P), showOptions.
+opponentGuess([],P) :- assignCards(P),retractall(guessCards(_)),showOptions.
 
 
 % ASSIGNCARDS - HELPER for opponentGuess -
