@@ -220,9 +220,10 @@ assignAsserts(P,Z,ZP).
 % has probability for the card.
 assignAsserts(_,Card,_) :- shownCard(_,Card,1.0). % card is out of play, don't assign it.
 assignAsserts(Player,Card,Prob) :- (not(shownCard(Player,Card,OP)) -> assert(shownCard(Player,Card,Prob)) ;
-shownCard(Player,Card,OP),
-X is OP + Prob,assert(shownCard(Player,Card,X)),
-retract(shownCard(Player,Card,OP))).
+shownCard(Player,Card,OP),X is OP + Prob,
+((X >= 1.0) -> retractall(shownCard(_,Card,_)), % retractall other occurances and assert to 1.0
+assert(shownCard(Player,Card,1.0)) ;
+assert(shownCard(Player,Card,X)),retract(shownCard(Player,Card,OP)))).
 
 % ASSNPROB - HELPER for assignCards (card,Probability of player having)
 % Creates a list of all probabilities (not including players own existing prob)
