@@ -210,9 +210,9 @@ assert(shownCard(P,Z,ZP)).
 %ASSIGNASSERTS - HELPER for assigncards handles assertions and retractions is player already
 % has probability for the card.
 assignAsserts(Player,Card,Prob) :- (not(shownCard(Player,Card,OP)) -> assert(shownCard(Player,Card,Prob)) ;
-shownCard(Player,Card,OPP),
-assert(shownCard(Player,Card,X)),X is OPP + Prob,write(X),write(Player),write(Card),
-retract(shownCard(Player,Card,OPP))).
+shownCard(Player,Card,OP),
+X is OP + Prob,assert(shownCard(Player,Card,X)),
+retract(shownCard(Player,Card,OP))).
 
 % ASSNPROB - HELPER for assignCards (card,Probability of player having)
 % Creates a list of all probabilities (not including players own existing prob)
