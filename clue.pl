@@ -78,7 +78,7 @@ N>0, % make sure positive number
 write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
-assert(shownCard(P,Card,1.0)),
+assignAsserts(P,Card,1.0),
 M is N-1,
 entercards(P,M).
 
@@ -159,15 +159,24 @@ showOptions.
 % EXECUTEOPTION[4] Process a guess by an opponent
 executeOption(4) :-
 nl,
+write('Which opponent made the guess (number)? '),
+read(Opponent),
 write('Enter the weapon they suggested: '),
 read(SuggestedWeapon),
 write('Enter the room they suggested: '),
 read(SuggestedRoom),
 write('Enter the person they suggested: '),
 read(SuggestedPerson),
-write('Which opponent held up the card that disproved the guess (number)? '),
+write('Did anyone hold up a card to disprove? Enter the player (number) or [N] for none: '),
 read(Player),
-opponentGuess([SuggestedPerson,SuggestedWeapon,SuggestedRoom],Player),
+% if nobody disproved the cards, assume 15% chance the opponent is bluffing and has the card if the card
+% is still in play.
+% else assign the guessed cards w/ calculated probability to the player that defeated the guess
+((Player = 'N' ; Player = 'n') ->
+assignAsserts(Opponent,SuggestedPerson,0.15),
+assignAsserts(Opponent,SuggestedWeapon,0.15),
+assignAsserts(Opponent,SuggestedRoom,0.15) ;
+opponentGuess([SuggestedPerson,SuggestedWeapon,SuggestedRoom],Player)),
 showOptions.
 
 % EXECUTEOPTION[5] Print to screen the remaining possible cards
@@ -209,6 +218,7 @@ assignAsserts(P,Z,ZP).
 
 %ASSIGNASSERTS - HELPER for assigncards handles assertions and retractions is player already
 % has probability for the card.
+assignAsserts(_,Card,_) :- shownCard(_,Card,1.0). % card is out of play, don't assign it.
 assignAsserts(Player,Card,Prob) :- (not(shownCard(Player,Card,OP)) -> assert(shownCard(Player,Card,Prob)) ;
 shownCard(Player,Card,OP),
 X is OP + Prob,assert(shownCard(Player,Card,X)),
@@ -225,7 +235,7 @@ assnProbHelp(List,SProb), Y is 0.30*SProb.
 remlist([],_,_,_).
 remlist([H|T],X,Card,P) :- shownCard(P,Card,Prob),((H = Prob) -> append([],T,X) ;
 remlist(T,K,Card,P),append([H],K,X)).
-remlist(X,Y,_,P) :- not(shownCard(P,_,_)),append([],X,Y). % no entry for player, return full list
+remlist(X,Y,Card,P) :- not(shownCard(P,Card,_)),append([],X,Y). % no entry for player, return full list
 
 % ASSNPROBHELP - HELPER for addProb. Product of card probs HELPER
 assnProbHelp([],1).
@@ -286,7 +296,7 @@ write(Y),nl,!.
 % then the nearest room is given out of the rooms unknown, otherwise closest room is given
 minValidRoom(Room,Value,X) :-
 findall(B,(steps(Room,B,Number),Number =< Value),Rooms),
-findall(A,(shownCard(_,A,B),B<100),ProbableCards),
+findall(A,(shownCard(_,A,B),B<1.0),ProbableCards),
 intersection(Rooms,ProbableCards,UsableRooms),
 length(UsableRooms,NU),
 (NU > 0 ->
@@ -295,7 +305,7 @@ min_in_list(Ans,Min),!,
 shownCard(_,Answer,Min),
 X = Answer
 ; 
-findall(A1,shownCard(_,A1,100),Showncards1),
+findall(A1,shownCard(_,A1,1.0),Showncards1),
 findall(B1,steps(Room,B1,_),Rooms1),
 subtract(Rooms1,Showncards1,RemainingRooms1),
 length(RemainingRooms1,N1),
