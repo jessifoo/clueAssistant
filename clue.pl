@@ -79,6 +79,7 @@ write('Enter your first/next card: '),
 read(Card),
 isValidCard(Card),
 assignAsserts(P,Card,1.0),
+checkWin,
 M is N-1,
 entercards(P,M).
 
@@ -140,6 +141,7 @@ nl,
 write('Which Player showed you the card (number)? '),
 read(Player),
 entercards(Player,1),
+checkWin,
 nl,
 showOptions.
 
@@ -178,6 +180,7 @@ assignAsserts(Opponent,SuggestedPerson,0.15),
 assignAsserts(Opponent,SuggestedWeapon,0.15),
 assignAsserts(Opponent,SuggestedRoom,0.15) ;
 opponentGuess([SuggestedPerson,SuggestedWeapon,SuggestedRoom],Player)),
+checkWin,
 showOptions.
 
 % EXECUTEOPTION[5] Print to screen the remaining possible cards
@@ -285,6 +288,21 @@ not(shownCard(_,X,1.0)),
 write(X),
 nl,
 fail.
+
+checkWin :-
+findall(X,(isWeapon(X),not(shownCard(_,X,1.0))),XL),
+findall(Y,(isPerson(Y),not(shownCard(_,Y,1.0))),YL),
+findall(Z,(isRoom(Z),not(shownCard(_,Z,1.0))),ZL),
+length(XL,LengthX),
+length(YL,LengthY),
+length(ZL,LengthZ),
+((LengthX > 1; LengthY > 1; LengthZ > 1) -> true;
+nl,
+write('The Answers are:'),nl,
+write(XL),nl,
+write(YL),nl,
+write(ZL),nl).
+
 
 % Function to suggest room user should move to next
 % Currently returns closest room out of rooms not in shownCard function. Should also take into account probabilities.
