@@ -95,7 +95,8 @@ write('[3] to enter or leave a room'),nl,
 write('[4] to enter an opponents guess'),nl,
 write('[5] to show remaining possible cards'),nl,
 write('[6] for the recommended room you should move to next'),nl,
-write('[7] quit program'),nl,
+write('[7] for some general tips'),nl,
+write('[8] quit program'),nl,
 write(':'),
 read(Option),
 executeOption(Option).
@@ -185,8 +186,13 @@ executeOption(5) :- printAvailCards.
 % EXECUTEOPTION[6] suggest best room to move to
 executeOption(6) :- suggestRoom,showOptions.
 
-% EXECUTEOPTION[7] Clear database and exit program.
-executeOption(7) :- clear.
+% EXECUTEOPTION[7] general playing tips
+executeOption(7) :-
+write('If you have the choice, when asked to show a card, try to keep showing the same card. Keep at least one of your cards hidden as long as possible.'),nl,
+showOptions.
+
+% EXECUTEOPTION[8] Clear database and exit program.
+executeOption(8) :- clear.
 
 % CLEAR - Retracts all dynamic elements
 clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),retractall(guessCards(_)), false.
