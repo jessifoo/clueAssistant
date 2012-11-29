@@ -75,8 +75,9 @@ playLoop.
 entercards(_,0).
 entercards(P,N) :-
 N>0, % make sure positive number
-write('Enter your first/next card: '),
-read(Card),
+write('Enter your first/next card: '),nl,
+write('Reminder, the people for this program are: profplum, msscarlet, mrspeacock, revgreen, mrswhite, colmustard'),nl,
+read(Card), 
 isValidCard(Card),
 assignAsserts(P,Card,1.0),
 checkWin,
@@ -96,8 +97,9 @@ write('[3] to enter or leave a room'),nl,
 write('[4] to enter an opponents guess'),nl,
 write('[5] to show remaining possible cards'),nl,
 write('[6] for the recommended room you should move to next'),nl,
-write('[7] for some general tips'),nl,
-write('[8] quit program'),nl,
+write('[7] to show what is known about other players'),nl,
+write('[8] for some general tips'),nl,
+write('[9] quit program'),nl,
 write(':'),
 read(Option),
 executeOption(Option).
@@ -168,7 +170,8 @@ write('Enter the weapon they suggested: '),
 read(SuggestedWeapon),
 write('Enter the room they suggested: '),
 read(SuggestedRoom),
-write('Enter the person they suggested: '),
+write('Enter the person they suggested: '),nl,
+write('Reminder, the people for this program are: profplum, msscarlet, mrspeacock, revgreen, mrswhite, colmustard'),nl,
 read(SuggestedPerson),
 write('Did anyone hold up a card to disprove? Enter the player (number) or [N] for none: '),
 read(Player),
@@ -189,16 +192,19 @@ executeOption(5) :- printAvailCards.
 % EXECUTEOPTION[6] suggest best room to move to
 executeOption(6) :- suggestRoom,showOptions.
 
-% EXECUTEOPTION[7] general playing tips
-executeOption(7) :-
+% EXECUTEOPTION[7]
+executeOption(7) :-getOtherPlayerStats.
+
+% EXECUTEOPTION[8] general playing tips
+executeOption(8) :-
 write('If you have the choice, when asked to show a card, try to keep showing the same card. Keep at least one of your cards hidden as long as possible.'),nl,
 showOptions.
 
-% EXECUTEOPTION[8] Clear database and exit program.
-executeOption(8) :- clear.
+% EXECUTEOPTION[9] Clear database and exit program.
+executeOption(9) :- clear.
 
 % CLEAR - Retracts all dynamic elements
-clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),retractall(guessCards(_)), false.
+clear :- retractall(shownCard(_,_,_)), retractall(numPlayerCards(_)), retractall(numPlayers(_)), retractall(playerRoom(_)),retractall(guessCards(_)), false,halt.
 
 % OPPONENTGUESS - HELPER for menu item [4] - assigns each card to dynamic guessCards, then runs sub HELPER
 % assignCards which assigns the card to the opponent with a probability
@@ -370,8 +376,35 @@ min_in_list([H,K|T],M) :-
     H > K,                              % H is greater than K
     min_in_list([K|T],M).               % so use K
  
+getOtherPlayerStats :-
+numPlayers(X),
+displayStats(X),
+showOptions.
 
-% Steps(X,Y,Num): Num is Number of steps needed to get from X to Y
+displayStats(0).
+displayStats(N) :-
+N > 0,
+findall(X,shownCard(N,X,1.0),KnownCards),
+findall(Y,(shownCard(N,Y,Fifty),Fifty>0.5,Fifty<1.0),OverFiftyCards),
+length(KnownCards,LenK),
+length(OverFiftyCards,LenF),
+(LenK > 0 -> nl,
+write('Player: '),
+write(N),
+write(' definitely has these cards: '), nl,
+write(KnownCards),nl
+; true),
+(LenF > 0 -> nl,
+write('There is a 50% or greater chance that player: '),
+write(N),
+write(' has these cards: '), nl,
+write(OverFiftyCards),nl
+; true),
+M is N-1,
+displayStats(M).
+
+% Steps(X,Y,Num): Num is Number of steps needed to get from X to Y 
+% Assuming old board layout
 /*
 Hall	 
 */
