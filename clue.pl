@@ -202,13 +202,30 @@ the probability that the other players DON'T have it. */
 
 assignCards(P) :- guessCards(X),guessCards(Y),guessCards(Z),
 X \= Y, Y \= Z, X \= Z, % assign guessCards to vars
-assnProb(X,XP), assnProb(Y,YP), assnProb(Z,ZP),
+assnProb(P,X,XP), assnProb(P,Y,YP), assnProb(P,Z,ZP),
 assert(shownCard(P,X,XP)),
 assert(shownCard(P,Y,YP)),
 assert(shownCard(P,Z,ZP)).
 
+%ASSIGNASSERTS - HELPER for assigncards handles assertions and retractions is player already
+% has probability for the card.
+assignAsserts(Player,Card,Prob) :- (not(shownCard(Player,Card,OP)) -> assert(shownCard(Player,Card,Prob)) ;
+shownCard(Player,Card,OPP),
+assert(shownCard(Player,Card,X)),X is OPP + Prob,write(X),write(Player),write(Card),
+retract(shownCard(Player,Card,OPP))).
+
 % ASSNPROB - HELPER for assignCards (card,Probability of player having)
-assnProb(X,Y) :- findall(P,shownCard(_,X,P),Z),assnProbHelp(Z,SProb), Y is 0.30*SProb.
+% Creates a list of all probabilities (not including players own existing prob)
+% sends list to assnProbHelp for calculation
+assnProb(Player,X,Y) :- findall(P,shownCard(_,X,P),Z),
+remlist(Z,List,X,Player),
+assnProbHelp(List,SProb), Y is 0.30*SProb.
+
+% REMLIST - remove player's own entry from the list (in,out,card,player)
+remlist([],_,_,_).
+remlist([H|T],X,Card,P) :- shownCard(P,Card,Prob),((H = Prob) -> append([],T,X) ;
+remlist(T,K,Card,P),append([H],K,X)).
+remlist(X,Y,_,P) :- not(shownCard(P,_,_)),append([],X,Y). % no entry for player, return full list
 
 % ASSNPROBHELP - HELPER for addProb. Product of card probs HELPER
 assnProbHelp([],1).
