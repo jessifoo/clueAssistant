@@ -327,21 +327,22 @@ intersection(Rooms,ProbableCards,UsableRooms),
 length(UsableRooms,NU),
 (NU > 0 ->
 (NU = 1 -> [X] = UsableRooms; getRooms(UsableRooms,Ans)),
-min_in_list(Ans,Min),!,
+min_in_list([Ans],Min),!,
 shownCard(_,Answer,Min),
 X = Answer
 ; 
-findall(A1,shownCard(_,A1,1.0),Showncards1),
+findall(A1,(isRoom(A1),shownCard(_,A1,1.0)),Showncards1),
 findall(B1,steps(Room,B1,_),Rooms1),
 subtract(Rooms1,Showncards1,RemainingRooms1),
 length(RemainingRooms1,N1),
+(N1 = 1 -> X = RemainingRooms1;
 getSteps(N1,Room,RemainingRooms1,Num1),
-min_in_list(Num1,Min1),!,
+min_in_list([Num1],Min1),!,
 steps(Room,Ans1,Min1),!,
-X=Ans1).
+X=Ans1)).
 
 getSteps(0,_,_,_).
-getSteps(1,R,RL,Num) :- steps(R,RL,Num),!.
+getSteps(1,R,[RL],Num) :- steps(R,RL,Num),!.
 getSteps(2,R,[R1,R2],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,Num=[A,B].
 getSteps(3,R,[R1,R2,R3],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,Num=[A,B,C].
 getSteps(4,R,[R1,R2,R3,R4],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,Num=[A,B,C,D].
