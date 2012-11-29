@@ -1,3 +1,50 @@
+/********************************************************************************
+CS 312 - Clue Assistant
+Partners:
+Anthony Nixon
+n7u7
+38705109
+
+Jessica Johnson
+k4g7
+34709097
+
+To start the program type: Start.
+Please end all inputs with a full stop: .
+If the program quits prematurely, enter continue to reach the options menu again.
+
+----Features----
+
+All cards are assigned a probability, 
+0 is unknown, could be in envelope,
+As the value gets higher it is more likely to not be in the envelope,
+1 is definitely known to not be in envelope.
+
+You are player 1, players are assigned a numerical value starting from your left and going around the circle.
+
+Option 1: Displays the current recommended move
+The move suggests a trio of cards that have minimum probabilities in their respective categories, excluding cards with probability 1.
+
+Option 2: Enter the card discovered from your turn or let the program know that no one showed you a card
+
+Option 3: Let the program know what room you are in or that you are leaving
+
+Option 4: Enter an opponents guess and which player showed them a card, or none at all.
+
+Option 5: Display remaining unknown cards
+
+Option 6: Display the room you should move to next.
+This is based on cards without probability 1, and the closest room (based on old version of board layout).
+
+Option 7: Display what is known about other players:
+1.) Which cards the program for sure knows they have,
+2.) Which cards the player could have at 50% or higher.
+
+Option 8: Display General Tips.
+
+Option 9: Quita the program and clears the database.
+
+********************************************************************************/
 /*
 Dynamic predicates to represent suspected weapons, persons, and rooms
 */
@@ -18,14 +65,6 @@ that the player has that card. shownCard(player,Card,probability) */
 
 % holds the cards from opponent an guess
 :- dynamic guessCards/1.
-
-/*
-Build predicate to take in game init: num players, who starts, cards given
-*/
-
-notWeapon(X) :- not(isWeapon(X)).
-notRoom(X) :- not(isRoom(X)).
-notValidPerson(X) :- not(isPerson(X)).
 
 % Valid weapon check
 isWeapon(knife).
@@ -57,7 +96,8 @@ isPerson(colmustard).
 % Valid card check
 isValidCard(Card) :- isWeapon(Card) ; isRoom(Card) ; isPerson(Card).
 
-% BEGIN GAMEPLAY PREDICATES ---------------------
+/**********************************************************************************/
+% BEGIN GAMEPLAY PREDICATES 
 
 % START program and enter play loop.
 start :-
@@ -70,6 +110,9 @@ read(Numcards),
 assert(numPlayerCards(Numcards)),
 entercards(1,Numcards),
 playLoop.
+
+% If the program prematurely quits, enter continue to get back to Options menu
+continue :- showOptions.
 
 % ENTERCARDS procedure to enter KNOWN cards (Player, Number of Cards to Enter)
 entercards(_,0).
@@ -143,7 +186,6 @@ nl,
 write('Which Player showed you the card (number)? '),
 read(Player),
 entercards(Player,1),
-checkWin,
 nl,
 showOptions.
 
@@ -192,12 +234,14 @@ executeOption(5) :- printAvailCards.
 % EXECUTEOPTION[6] suggest best room to move to
 executeOption(6) :- suggestRoom,showOptions.
 
-% EXECUTEOPTION[7]
+% EXECUTEOPTION[7] Display stats of other players
 executeOption(7) :-getOtherPlayerStats.
 
 % EXECUTEOPTION[8] general playing tips
 executeOption(8) :-
 write('If you have the choice, when asked to show a card, try to keep showing the same card. Keep at least one of your cards hidden as long as possible.'),nl,
+write('Reminder, the people for this program are: profplum, msscarlet, mrspeacock, revgreen, mrswhite, colmustard'),nl,
+write('Always end you inputs with a full stop: . '),nl,
 showOptions.
 
 % EXECUTEOPTION[9] Clear database and exit program.
@@ -295,6 +339,10 @@ write(X),
 nl,
 fail.
 
+/*
+Check if the player knows enough to win,
+A win is known if there is only 1 card in each category that is not a probability of 1
+*/ 
 checkWin :-
 findall(X,(isWeapon(X),not(shownCard(_,X,1.0))),XL),
 findall(Y,(isPerson(Y),not(shownCard(_,Y,1.0))),YL),
@@ -311,7 +359,6 @@ write(ZL),nl).
 
 
 % Function to suggest room user should move to next
-% Currently returns closest room out of rooms not in shownCard function. Should also take into account probabilities.
 suggestRoom :-
 nl,
 (playerRoom(X) -> Room = X;
@@ -323,9 +370,12 @@ minValidRoom(Room,Value,Y),!,
 write('You should head to the: '),
 write(Y),nl,!.
 
-% minValidRoom(Room,Value,X), Room is the room the player is in, Value is the result of the players dice role/
-% The function finds all the rooms the user can get to within the dice roll, if there are no rooms in that list that aren't already known,
-% then the nearest room is given out of the rooms unknown, otherwise closest room is given
+/*
+ minValidRoom(Room,Value,X), Room is the room the player is in, Value is the result of the players dice/role.
+ The function finds all the rooms the user can get to within the dice roll and returns the room with the lowest probability from that list, 
+ if there are no rooms in that list that aren't already known,
+ then the nearest room is given out of the rooms unknown
+*/
 minValidRoom(Room,Value,X) :-
 findall(B,(steps(Room,B,Number),Number =< Value),Rooms),
 findall(A,(shownCard(_,A,B),B<1.0),ProbableCards),
@@ -347,6 +397,7 @@ min_in_list([Num1],Min1),!,
 steps(Room,Ans1,Min1),!,
 X=Ans1)).
 
+% Get a list of steps from input Room R to each room in list
 getSteps(0,_,_,_).
 getSteps(1,R,[RL],Num) :- steps(R,RL,Num),!.
 getSteps(2,R,[R1,R2],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,Num=[A,B].
@@ -357,7 +408,7 @@ getSteps(6,R,[R1,R2,R3,R4,R5,R6],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R
 getSteps(7,R,[R1,R2,R3,R4,R5,R6,R7],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,Num=[A,B,C,D,E,F,G].
 getSteps(8,R,[R1,R2,R3,R4,R5,R6,R7,R8],Num) :- steps(R,R1,A),!,steps(R,R2,B),!,steps(R,R3,C),!,steps(R,R4,D),!,steps(R,R5,E),!,steps(R,R6,F),!,steps(R,R7,G),!,steps(R,R8,H),!,Num=[A,B,C,D,E,F,G,H].
 
-
+% Get a list of probabilities from the input list of rooms
 getRooms([R1,R2],X) :- shownCard(_,R1,A),shownCard(_,R2,B),X=[A,B].
 getRooms([R1,R2,R3],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),X=[A,B,C].
 getRooms([R1,R2,R3,R4],X) :- shownCard(_,R1,A),shownCard(_,R2,B),shownCard(_,R3,C),shownCard(_,R4,D),X=[A,B,C,D].
@@ -376,11 +427,14 @@ min_in_list([H,K|T],M) :-
     H > K,                              % H is greater than K
     min_in_list([K|T],M).               % so use K
  
+% For each player, display their stats 
 getOtherPlayerStats :-
 numPlayers(X),
 displayStats(X),
 showOptions.
 
+% Display the cards we know the player has, with probability 1,
+% Display the cards we know the player could have with probability between 50% and 100%
 displayStats(0).
 displayStats(N) :-
 N > 0,
