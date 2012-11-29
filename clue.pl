@@ -203,9 +203,9 @@ the probability that the other players DON'T have it. */
 assignCards(P) :- guessCards(X),guessCards(Y),guessCards(Z),
 X \= Y, Y \= Z, X \= Z, % assign guessCards to vars
 assnProb(P,X,XP), assnProb(P,Y,YP), assnProb(P,Z,ZP),
-assert(shownCard(P,X,XP)),
-assert(shownCard(P,Y,YP)),
-assert(shownCard(P,Z,ZP)).
+assignAsserts(P,X,XP),
+assignAsserts(P,Y,YP),
+assignAsserts(P,Z,ZP).
 
 %ASSIGNASSERTS - HELPER for assigncards handles assertions and retractions is player already
 % has probability for the card.
