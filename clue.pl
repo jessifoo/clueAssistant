@@ -159,14 +159,14 @@ showOptions.
 % EXECUTEOPTION[4] Process a guess by an opponent
 executeOption(4) :-
 nl,
-write('Which opponent made the guess (number)? '),
-read(Player),
 write('Enter the weapon they suggested: '),
 read(SuggestedWeapon),
 write('Enter the room they suggested: '),
 read(SuggestedRoom),
 write('Enter the person they suggested: '),
 read(SuggestedPerson),
+write('Which opponent held up the card that disproved the guess (number)? '),
+read(Player),
 opponentGuess([SuggestedPerson,SuggestedWeapon,SuggestedRoom],Player),
 showOptions.
 
