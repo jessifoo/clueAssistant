@@ -105,6 +105,15 @@ min(X) :- isPerson(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
 min(X) :- isWeapon(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
 min(X) :- isRoom(X),shownCard(_,X,Z),not((shownCard(_,X,Other),Other<Z)),!.
 
+% ADDPROB - HELPER for assignCards (card,Probability of player having)
+addProb(X,Y) :- findall(P,shownCard(_,X,P),Z),addProbHelp(Z,SProb), Y is SProb.
+
+% ADDPROBHELP - HELPER for addProb. Product of card probs HELPER
+addProbHelp([],0).
+addProbHelp([H|T],Sum) :-
+addProbHelp(T,Sum1),
+Sum is H + Sum1.
+
 % HELPER for showOptions (MENU) executes selected option.
 
 % EXECUTEOPTION[1] Gives the best guess based on the evaluator functions of the items in database
@@ -193,18 +202,18 @@ the probability that the other players DON'T have it. */
 
 assignCards(P) :- guessCards(X),guessCards(Y),guessCards(Z),
 X \= Y, Y \= Z, X \= Z, % assign guessCards to vars
-addProb(X,XP), addProb(Y,YP), addProb(Z,ZP),
+assnProb(X,XP), assnProb(Y,YP), assnProb(Z,ZP),
 assert(shownCard(P,X,XP)),
 assert(shownCard(P,Y,YP)),
 assert(shownCard(P,Z,ZP)).
 
-% ADDPROB - HELPER for assignCards (card,Probability of player having)
-addProb(X,Y) :- findall(P,shownCard(_,X,P),Z),addProbHelp(Z,SProb), Y is 0.30*SProb.
+% ASSNPROB - HELPER for assignCards (card,Probability of player having)
+assnProb(X,Y) :- findall(P,shownCard(_,X,P),Z),assnProbHelp(Z,SProb), Y is 0.30*SProb.
 
-% ADDPROBHELP - HELPER for addProb. Product of card probs HELPER
-addProbHelp([],1).
-addProbHelp([H|T],Sum) :-
-addProbHelp(T,Sum1),
+% ASSNPROBHELP - HELPER for addProb. Product of card probs HELPER
+assnProbHelp([],1).
+assnProbHelp([H|T],Sum) :-
+assnProbHelp(T,Sum1),
 H2 is 1 - H,
 Sum is H2 * Sum1.
 
