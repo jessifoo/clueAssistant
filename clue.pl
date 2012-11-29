@@ -221,7 +221,7 @@ assnProb(Player,X,Y) :- findall(P,shownCard(_,X,P),Z),
 remlist(Z,List,X,Player),
 assnProbHelp(List,SProb), Y is 0.30*SProb.
 
-% REMLIST - remove player's own entry from the list (in,out,card,player)
+% REMLIST - remove player's own entry from the list of probabilities (in,out,card,player)
 remlist([],_,_,_).
 remlist([H|T],X,Card,P) :- shownCard(P,Card,Prob),((H = Prob) -> append([],T,X) ;
 remlist(T,K,Card,P),append([H],K,X)).
@@ -442,41 +442,4 @@ steps(kitchen,diningroom,11).
 steps(kitchen,billiardroom,17).
 steps(kitchen,conservatory,20).
 steps(kitchen,ballroom,7).
-
-
-/* NOTES and ideas
-
-1. Anthony
-
-make a dynamic predicate called
-opponentsCards(player,card,probability)
-
-ADD all YOUR cards with prob 100
-
-when a player shows YOU a card during your turn it is added with probability of 100
-
-when a player holds up a card to beat the guess of another player
-
-case 1: no other opponent has any of the three cards
-ALL three possible cards are added with a probabilty of 30
-
-case 2: one of the cards is held by another opponent w/ prob 100
-two unheld cards are added with a probability of 50
-
-case 3: two of the cards are held by opponents w/ prob 100
-unheld card is added to player w/ prob 100
-
-case 4: cards are held by other players with a percentage < 100
-each card (A,B,C) is assigned 30% * (100%-percentage of card being held by others)
-
-
-
-
-2. Jessyka
-
-Keep track of room distances from player
-
-when you enter a room all the room values should also change based on the absolute distance from the room you are currently in. so say you have room(kitchen,1) room(study,0) room(library,2) then you go into the library… it becomes: room(library,2) room(study,1) room(kitchen,4)
-
-*/
 
